@@ -1,0 +1,135 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<script>
+		window.onload = function () {
+			var canvas = document.getElementById("myCanvas");
+            var cntx = canvas.getContext("2d");
+		
+            var ratio = 768/2;
+			var ballRatio = ratio/8;
+			var ballPos = {x:ratio/2,y:ratio*.8};
+			var ballMov = { x: 3, y: -5 };
+			var collisionPoint = { x: ratio / 2, y: ratio / 2 };
+			var collisionTriangle = {
+			    p1x: 0,
+			    p1y: 0,
+			    p2x: 0,
+			    p2y: 0,
+			    p3x: 0,
+			    p3y: 0,
+			};
+			var heart = setInterval(function () {
+				    update();
+				    drawMath();
+
+				}, 1000 / 24);
+				
+				function update(){
+					ballPos.x += ballMov.x;
+					ballPos.y += ballMov.y;
+					if (lineDistance({ x: ratio / 2, y: ratio / 2 }, ballPos) > (ratio - ballRatio) / 2) {
+                        //Calculo el punto donde colisionan
+					    var dx = ballPos.x - ratio / 2;
+					    var dy = ballPos.y - ratio / 2;
+					    var hipotenusa = Math.sqrt((dx * dx) + (dy * dy));
+					    var normalX = dx / hipotenusa;
+					    var normalY = dy / hipotenusa;
+					    collisionPoint.x = ballPos.x + (ballRatio / 2) * normalX;
+					    collisionPoint.y = ballPos.y + (ballRatio / 2) * normalY;
+
+					    //Corrijo el punto de colision si esta fuera del diametro
+					    dx = collisionPoint.x - ratio / 2;
+					    dy = collisionPoint.y - ratio / 2;
+					    hipotenusa = Math.sqrt((dx * dx) + (dy * dy));
+					    if (hipotenusa != ratio / 2) {
+					        normalX = dx / hipotenusa;
+					        normalY = dy / hipotenusa;
+					        var hipAux = hipotenusa - ratio / 2;
+					        collisionPoint.x += (hipAux * normalX) * -1;
+					        collisionPoint.y += (hipAux * normalY) * -1;
+					        //Corrijo la posicion de la pelota con respecto al nuevo punto de colision
+					        ballPos.x += (hipAux * normalX) * -1;
+					        ballPos.y += (hipAux * normalY) * -1;
+					    }
+
+					    collisionTriangle.p1x = collisionPoint.x;
+					    collisionTriangle.p1y = collisionPoint.y;
+					    collisionTriangle.p2x = collisionPoint.x + (ballMov.x * 10) * -1;
+					    collisionTriangle.p2y = collisionPoint.y;
+					    collisionTriangle.p3x = collisionTriangle.p2x;
+					    collisionTriangle.p3y = collisionPoint.y + (ballMov.y * 10) * -1;
+
+					    // Calculo nuevamente las normales con el nuevo punto de colision
+					    dx = collisionPoint.x + ballMov.x;
+					    dy = collisionPoint.y + ballMov.y;
+					    hipotenusa = Math.sqrt((dx * dx) + (dy * dy));
+					    normalX = dx / hipotenusa;
+					    normalY = dy / hipotenusa;
+
+					    // Calculo el vector de movimiento de la pelota
+					    dx = ballMov.x;
+					    dy = ballMov.y;
+					    hipotenusa = Math.sqrt((dx * dx) + (dy * dy));
+
+					    // Modifico los valores de vector de la pelota
+					    //ballMov.x = (hipotenusa * normalX);
+					    //ballMov.y = (hipotenusa * normalY);
+					    ballMov.x *= -1;
+					    ballMov.y *= -1;
+					}
+				}
+
+		         // Converts from degrees to radians.
+				Math.radians = function (degrees) {
+				    return degrees * Math.PI / 180;
+				};
+
+		        // Converts from radians to degrees.
+				Math.degrees = function (radians) {
+				    return radians * 180 / Math.PI;
+				};
+				
+				function lineDistance( point1, point2 ){
+					var xs = 0;
+					var ys = 0;
+					xs = point2.x - point1.x;
+					xs = xs * xs;
+					ys = point2.y - point1.y;
+					ys = ys * ys;
+					return Math.sqrt( xs + ys );
+				}	
+				
+				var drawMath = function () {
+				    cntx.clearRect(0, 0, ratio, ratio);
+
+				    cntx.beginPath();
+				    cntx.arc(ratio / 2, ratio / 2, ratio/2, 0, 360);
+				    cntx.strokeStyle = "black";
+				    cntx.stroke();
+				    cntx.closePath();
+
+				    cntx.beginPath();
+				    cntx.arc(ballPos.x, ballPos.y, ballRatio / 2, 0, 360);
+				    cntx.strokeStyle = "black";
+				    cntx.stroke();
+				    cntx.closePath();
+
+				    cntx.beginPath();
+				    cntx.strokeStyle = "blue";
+				    cntx.moveTo(collisionTriangle.p1x, collisionTriangle.p1y);
+				    cntx.lineTo(collisionTriangle.p1x, collisionTriangle.p1y);
+				    cntx.lineTo(collisionTriangle.p2x, collisionTriangle.p2y);
+				    cntx.lineTo(collisionTriangle.p3x, collisionTriangle.p3y);
+				    cntx.lineTo(collisionTriangle.p1x, collisionTriangle.p1y);
+				    cntx.stroke();
+
+				    cntx.closePath();
+				}
+            };
+		</script>
+    </head>
+    <body>
+        <canvas id="myCanvas" width="1024" height="768"></canvas>
+    </body>
+</html>
